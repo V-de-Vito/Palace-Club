@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palace Club - Accueil</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header>
+        <div class="brand neon-pink">Palace Club</div>
+        <nav>
+            <a href="index.html">Accueil</a>
+            <a href="#reservation">Réserver</a>
+            <a href="#" id="loginBtn">Connexion Employé</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="card" style="text-align: center; padding: 60px 20px;">
+            <h1 class="neon-blue">Bienvenue au Palace</h1>
+            <p>Le club le plus exclusif de la ville. Ambiance feutrée, musique rétro et soirées inoubliables.</p>
+        </div>
+
+        <div id="reservation" class="card">
+            <h2 class="neon-pink">Demande de Réservation</h2>
+            <div id="res-msg"></div>
+            <form id="reservationForm">
+                <input type="text" id="resName" placeholder="Votre Nom (ex: John Doe)" required>
+                <input type="tel" id="resPhone" placeholder="Numéro de Téléphone (ex: 555-0192)" required>
+                <input type="text" id="resDetails" placeholder="Détails (Nombre de personnes, VIP, etc.)" required>
+                <button type="submit">Envoyer la demande</button>
+            </form>
+        </div>
+
+        <!-- Modal de connexion (cachée par défaut) -->
+        <div id="loginSection" class="card hidden">
+            <h2 class="neon-blue">Accès Restreint</h2>
+            <div id="login-msg"></div>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Mot de passe" required>
+                <button type="submit" class="blue-btn">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
