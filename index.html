@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>WEED HQ | LIVE ULTIME</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --g-gr: #2ecc71; --g-rd: #e74c3c; --bg: #0a0a0b; --card: #141417; --brd: #232328; }
+        body { background: var(--bg); color: #e0e0e0; font-family: sans-serif; margin: 0; padding: 15px; font-size: 0.85rem; }
+        .dashboard { max-width: 1500px; margin: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .header { grid-column: 1/-1; display: flex; justify-content: space-between; background: var(--card); padding: 15px; border: 1px solid var(--brd); border-radius: 8px; align-items: center; margin-bottom: 10px; }
+        .card { background: var(--card); border: 1px solid var(--brd); padding: 15px; border-radius: 8px; }
+        h3 { margin: 0 0 10px; font-size: 0.7rem; color: #666; text-transform: uppercase; border-bottom: 1px solid var(--brd); padding-bottom: 5px; }
+        .item-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #1c1c21; }
+        .money { font-size: 1.8rem; font-weight: 800; color: #fff; text-align: center; margin: 10px 0; }
+        input, select { background: #000; border: 1px solid var(--brd); color: #fff; padding: 10px; width: 100%; border-radius: 5px; margin-bottom: 5px; box-sizing: border-box; }
+        .btn { padding: 10px; border: none; border-radius: 5px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; font-size: 0.65rem; margin-top: 5px; }
+        .b-gr { background: var(--g-gr); color: #052c14; }
+        .b-dk { background: #1a1a1e; color: #fff; border: 1px solid #333; }
+        .b-rd { background: rgba(231,76,60,0.1); color: var(--g-rd); border: 1px solid var(--g-rd); }
+        .simu { background: #000; padding: 8px; border-radius: 5px; text-align: center; margin: 5px 0; font-weight: bold; color: var(--g-gr); }
+        .logs { grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 15px; }
+        .l-col { background: var(--card); height: 320px; overflow-y: auto; border: 1px solid var(--brd); border-radius: 8px; }
+        .l-h { position: sticky; top: 0; background: #1a1a1e; padding: 8px; font-weight: 800; color: var(--g-gr); border-bottom: 1px solid var(--brd); font-size: 0.65rem; z-index: 2; }
+        .l-r { padding: 8px 10px; border-bottom: 1px solid #1c1c21; font-size: 0.75rem; line-height: 1.4; }
+        .l-t { color: #555; font-size: 0.65rem; display: block; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="font-size: 1rem; color: var(--g-gr); margin:0">WEED HQ LIVE 🟢</h1>
+        <select id="op" style="width:120px; margin:0" onchange="localStorage.setItem('w_op', this.value)">
+            <option value="">Signature</option><option value="KD">KD</option><option value="Big J">Big J</option><option value="24K">24K</option>
+        </select>
+    </div>
+
+    <div class="dashboard">
+        <div class="card"><h3>📦 Stocks</h3><div id="st-l"></div><div class="money" id="bal">0$</div></div>
+        
+        <div class="card"><h3>⚡ Labo</h3>
+            <input type="number" id="p-q" placeholder="Pots à planter">
+            <button class="btn b-gr" onclick="act('PRODUCTION', 'P')">Planter</button>
+            <input type="number" id="t-q" placeholder="Têtes à traiter" style="margin-top:10px">
+            <button class="btn b-gr" onclick="act('PRODUCTION', 'T')">Traiter</button>
+        </div>
+
+        <div class="card"><h3>💸 Ventes</h3>
+            <select id="s-t" onchange="upP()"><option value="Vente" data-p="20">Vente (20$)</option><option value="Rachat" data-p="-6">Rachat (6$)</option><option value="Service" data-p="5">Gang (5$)</option></select>
+            <input type="number" id="s-p" placeholder="Prix" oninput="calcSale()"><input type="number" id="s-q" placeholder="Qté" oninput="calcSale()"><input type="text" id="s-c" placeholder="Client">
+            <div id="sale-simu" class="simu">Total : 0$</div>
+            <button class="btn b-gr" onclick="act('TRANSACTION')">Valider</button>
+        </div>
+
+        <div class="card"><h3>🛒 Achats</h3>
+            <select id="b-i"><option value="pot" data-p="0">Pot (0$)</option><option value="terreau" data-p="3">Ter (3$)</option><option value="lampe_uv" data-p="5">UV (5$)</option><option value="eau" data-p="10">Eau (10$)</option><option value="pochon_vide" data-p="1">Pochon (1$)</option></select>
+            <input type="number" id="b-q" placeholder="Qté"><button class="btn b-dk" onclick="addC()">+ Panier</button>
+            <div id="c-l" style="margin-top:5px"></div>
+            <div id="buy-simu" class="simu" style="display:none; color:#fff">Total : 0$</div>
+            <button id="b-py" class="btn b-gr" style="display:none" onclick="act('ACHAT')">Payer</button>
+        </div>
+
+        <div class="card"><h3>🛠️ Manuel</h3>
+            <select id="a-i"><option value="pot">Pot</option><option value="terreau">Terreau</option><option value="lampe_uv">UV</option><option value="eau">Eau</option><option value="pochon_vide">Pochon V</option><option value="tete_weed">Tête</option><option value="pochon_weed">Pochon W</option></select>
+            <input type="number" id="a-q" placeholder="Qté">
+            <div style="display:flex;gap:5px"><button class="btn b-gr" onclick="act('AJUSTEMENT',1)">Stk +</button><button class="btn b-rd" onclick="act('AJUSTEMENT',-1)">Stk -</button></div>
+            <div style="display:flex;gap:5px"><button class="btn b-dk" onclick="act('FINANCE',1)">Caisse +</button><button class="btn b-dk" onclick="act('FINANCE',-1)">Caisse -</button></div>
+        </div>
+    </div>
+
+    <div class="logs">
+        <div class="l-col"><div class="l-h">PRODUCTION</div><div id="LOG-PRODUCTION"></div></div>
+        <div class="l-col"><div class="l-h">VENTES</div><div id="LOG-TRANSACTION"></div></div>
+        <div class="l-col"><div class="l-h">ACHATS</div><div id="LOG-ACHAT"></div></div>
+        <div class="l-col"><div class="l-h">STOCKS (M)</div><div id="LOG-AJUSTEMENT"></div></div>
+        <div class="l-col"><div class="l-h">CAISSE (M)</div><div id="LOG-FINANCE"></div></div>
+    </div>
+
+    <script>
+        const SB_URL = "https://htoiiraxwckvhqpctsfc.supabase.co", SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0b2lpcmF4d2NrdmhxcGN0c2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NDcyNjYsImV4cCI6MjA5MzUyMzI2Nn0.UgVhF5n1m5dEjw38BDBDe-0F2yIO80YpLwvWBM3oqug";
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+        let stk = {}, bal = 0, cart = [];
+
+        async function refresh() {
+            const { data: s } = await sb.from('stock').select('*');
+            const { data: t } = await sb.from('treasury').select('balance').single();
+            const { data: l } = await sb.from('logs').select('*').order('created_at', { ascending: false }).limit(50);
+            
+            if(s) document.getElementById('st-l').innerHTML = s.map(i => { stk[i.id] = i.quantity; return `<div class="item-row"><span>${i.label}</span><span style="color:var(--g-gr);font-weight:bold">x${i.quantity}</span></div>` }).join('');
+            if(t) document.getElementById('bal').innerText = t.balance.toLocaleString() + "$";
+            
+            ['PRODUCTION','TRANSACTION','ACHAT','AJUSTEMENT','FINANCE'].forEach(id => document.getElementById('LOG-'+id).innerHTML = "");
+            l?.forEach(i => { 
+                const col = document.getElementById('LOG-'+i.action_type);
+                if(col) {
+                    const time = new Date(i.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    col.insertAdjacentHTML('beforeend', `<div class="l-r"><span class="l-t">${time}</span><b>${i.operator}</b>: ${i.details}</div>`);
+                }
+            });
+        }
+
+        function upP() { const s = document.getElementById('s-t'); document.getElementById('s-p').value = Math.abs(s.options[s.selectedIndex].dataset.p); calcSale(); }
+        function calcSale() { const p = document.getElementById('s-p').value||0, q = document.getElementById('s-q').value||0, m = document.getElementById('s-t').value === 'Rachat' ? -1 : 1; document.getElementById('sale-simu').innerText = "Total : " + (p*q*m) + "$"; }
+        
+        function addC() { 
+            const s = document.getElementById('b-i'), q = parseInt(document.getElementById('b-q').value)||0; 
+            if(q>0) { 
+                cart.push({id:s.value, l:s.options[s.selectedIndex].text.split(' (')[0], q, p:parseInt(s.options[s.selectedIndex].dataset.p)*q}); 
+                renderC(); 
+            } 
+        }
+        function renderC() { 
+            let t=0; 
+            document.getElementById('c-l').innerHTML = cart.map((i,x) => { t+=i.p; return `<div class="item-row" style="font-size:0.7rem"><span>${i.q}x ${i.l}</span><span onclick="cart.splice(${x},1);renderC()" style="color:red;cursor:pointer">✕</span></div>` }).join(''); 
+            document.getElementById('buy-simu').innerText = "Total : " + t + "$";
+            document.getElementById('buy-simu').style.display = cart.length ? 'block' : 'none';
+            document.getElementById('b-py').style.display = cart.length ? 'block' : 'none'; 
+        }
+        
+        async function act(type, sub) {
+            const op = document.getElementById('op').value; if(!op) return alert("Nom ?");
+            let det = "";
+            if(type==='PRODUCTION') {
+                if(sub==='P') {
+                    const q = parseInt(document.getElementById('p-q').value)||0; if(q<=0) return;
+                    await sb.rpc('increment_stock',{row_id:'pot',val:-q}); await sb.rpc('increment_stock',{row_id:'terreau',val:-q}); await sb.rpc('increment_stock',{row_id:'lampe_uv',val:-q}); await sb.rpc('increment_stock',{row_id:'eau',val:-(q*2)});
+                    det = `Plante ${q} pots`; document.getElementById('p-q').value="";
+                } else {
+                    const q = parseInt(document.getElementById('t-q').value)||0, p = Math.floor(q/2); if(q<10) return;
+                    await sb.rpc('increment_stock',{row_id:'tete_weed',val:-q}); await sb.rpc('increment_stock',{row_id:'pochon_vide',val:-p}); await sb.rpc('increment_stock',{row_id:'pochon_weed',val:p});
+                    det = `Traite ${q} têtes → ${p} pochons`; document.getElementById('t-q').value="";
+                }
+            } else if(type==='TRANSACTION') {
+                const ty=document.getElementById('s-t').value, p=parseInt(document.getElementById('s-p').value)||0, q=parseInt(document.getElementById('s-q').value)||0, c=document.getElementById('s-c').value||'?', t=(ty==='Rachat'?-(p*q):p*q);
+                await sb.rpc('update_money',{val:t}); if(ty!=='Service') await sb.rpc('increment_stock',{row_id:(ty==='Vente'?'pochon_weed':'tete_weed'), val:(ty==='Vente'?-q:q)});
+                det = `${ty} x${q} à ${c} (${t}$)`; document.getElementById('s-q').value=""; calcSale();
+            } else if(type==='ACHAT') {
+                let t = cart.reduce((a,i)=>a+i.p,0); for(let i of cart) await sb.rpc('increment_stock',{row_id:i.id, val:i.q});
+                await sb.rpc('update_money',{val:-t}); det = `Achat: ${cart.map(i=>i.q+' '+i.l).join(', ')} (-${t}$)`; cart=[]; renderC();
+            } else if(type==='AJUSTEMENT') {
+                const i=document.getElementById('a-i').value, q=(parseInt(document.getElementById('a-q').value)||0)*sub;
+                await sb.rpc('increment_stock',{row_id:i, val:q}); det = `Ajuste ${q} ${i}`;
+            } else if(type==='FINANCE') {
+                const q=(parseInt(document.getElementById('a-q').value)||0)*sub;
+                await sb.rpc('update_money',{val:q}); det = `Caisse ${q}$`;
+            }
+            await sb.from('logs').insert({operator:op, action_type:type, details:det});
+            refresh();
+        }
+
+        const saved = localStorage.getItem('w_op'); if(saved) document.getElementById('op').value = saved;
+        refresh(); sb.channel('db').on('postgres_changes',{event:'*',schema:'public'},refresh).subscribe();
+    </script>
+</body>
+</html>
